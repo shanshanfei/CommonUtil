@@ -1,0 +1,63 @@
+//数值的千分位表示
+function formatNum(val, options = {}) {
+    options = {
+        dot: ',',     // 分隔符：不可为number以及number字符串
+        rawDot: ',',  // 特殊情况-存在原分隔符，默认','
+        decimals: '',
+        ...options
+    };
+    const { dot, rawDot, decimals } = options;
+    // val: 数值, decimals:保留小数位, dot:分隔符, rawDot:原分隔符号
+    let reg = /^(\-|\+)?(\d+)?(\.\d+)?$/,
+        integer = '',
+        decimal = '',
+        mark = '';
+
+    // 数值验证
+    if (val == null || val === '' || !reg.test(val)) {
+        // console.log("数值格式化失败-值:", val);
+        return val;
+    }
+
+    if (/\d+/.test(dot)) {
+        // console.log("数值格式化失败-分隔符:", dot);
+        return val;
+    }
+
+    // 格式化数字
+    reg = new RegExp(`\\${rawDot}`, 'g');
+    val = val.toString().replace(reg, '');
+    if (decimals) {
+        val = Number(val).toFixed(decimals);
+    }
+
+    // 提取符号
+    if (/^[+-].*?$/.test(val)) {
+        mark = val[0];
+        val = val.substr(1);
+    }
+
+    // 分离小数位和整数位(+/-)
+    val.split('.').map((v, i) => {
+        if(i == 0) {
+            integer = Number(v); // 过滤非正常格式数值 如00001等
+        } else {
+            decimal = v;
+        }
+    })
+
+    // 整数位加','分隔
+    if (dot) {
+        integer += dot.toString();
+        reg = new RegExp(`(\\d)(\\d{3}${dot})`);
+        while(reg.test(integer)) {
+            integer = integer.replace(reg, `$1${dot}$2`);
+        }
+        reg = new RegExp(`${dot}$`);
+        integer = integer.replace(reg, '');
+    }
+
+    // 合并整数小数位
+    integer += (decimal ? '.' + decimal : '');
+    return mark + integer;
+}
